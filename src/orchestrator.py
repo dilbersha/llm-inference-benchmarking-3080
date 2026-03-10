@@ -11,6 +11,7 @@ import math
 import pynvml
 import urllib.request
 import zipfile
+import argparse
 
 def ensure_wikitext(dataset_path):
     if not os.path.exists(dataset_path):
@@ -87,6 +88,23 @@ def run_perplexity(model_path, llama_perplexity_path, dataset_path, context_leng
     except Exception as e:
         print(f"  ⚠️ Perplexity test failed: {e}")
     return 0.0
+
+def detect_model_family(model_name):
+    # Try to extract architecture name before the first hyphen or parameter count
+    # e.g., "DeepSeek-R1-Distill-Q4_K_M.gguf" -> "DeepSeek"
+    # e.g., "Meta-Llama-3-8B.gguf" -> "Meta-Llama"
+    # e.g., "qwen2.5-3b-instruct-q4.gguf" -> "qwen2.5"
+    match = re.match(r'^([a-zA-Z0-9.]+?)(?:-\d|-[vV]|\.|\-)', model_name)
+    if match:
+        family = match.group(1)
+        # Clean up common prefixes or suffixes if needed, though raw is often fine
+        if family.lower() in ['meta', 'thebloke', 'bartowski']:
+            # Fallback to a broader regex if it's just an org name
+            alt_match = re.match(r'^[a-zA-Z0-9.]+?-([a-zA-Z0-9.]+?)(?:-\d|-[vV]|\.|\-)', model_name)
+            if alt_match:
+                return alt_match.group(1).capitalize()
+        return family.capitalize()
+    return "Generic/Custom"
 
 def run_benchmark(model_path, llama_cli_path, thermal_log_csv, context_length=2048, prompt="Explain transformers in simple terms."):
     stop_event = threading.Event()
@@ -165,14 +183,7 @@ def run_benchmark(model_path, llama_cli_path, thermal_log_csv, context_length=20
             if match_generic:
                 tokens_per_sec = float(match_generic.group(1))
                 
-    family = "Unknown"
-    lower_name = model_name.lower()
-    if "qwen" in lower_name:
-        family = "Qwen"
-    elif "mistral" in lower_name:
-        family = "Mistral"
-    elif "llama" in lower_name:
-        family = "Llama"
+    family = detect_model_family(model_name)
     tokens_per_joule = (tokens_per_sec / avg_power) if avg_power > 0 else 0.0
         
     return {
@@ -188,8 +199,10 @@ def run_benchmark(model_path, llama_cli_path, thermal_log_csv, context_length=20
     }
 
 def main():
-    base_models_dir = os.path.expanduser("~/dev/llm_models")
-    
+    parser = argparse.ArgumentParser(description="LLM Inference Telemetry Suite")
+    parser.add_argument("--path", type=str, default=os.path.expanduser("~/dev/llm_models"), help="Path to a specific .gguf file or a directory containing models.")
+    args = parser.parse_args()
+
     base_dir = os.path.abspath(os.path.dirname(__file__))
     llama_cli = os.path.normpath(os.path.join(base_dir, "../../llama.cpp/build/bin/llama-cli"))
     llama_perplexity = os.path.normpath(os.path.join(base_dir, "../../llama.cpp/build/bin/llama-perplexity"))
@@ -230,6 +243,21 @@ def main():
     
     if os.path.exists(thermal_log_csv):
         os.remove(thermal_log_csv)
+        
+    gguf_files = []
+    if os.path.isfile(args.path) and args.path.lower().endswith('.gguf'):
+        gguf_files = [args.path]
+    elif os.path.isdir(args.path):
+        gguf_files = glob.glob(os.path.join(args.path, "**", "*.gguf"), recursive=True)
+    
+    gguf_files = sorted(gguf_files)
+    
+    if not gguf_files:
+        print(f"No GGUF models found in {args.path}")
+        sys.exit(0)
+        
+    print(f"Found {len(gguf_files)} GGUF models.")
+    print("\nStarting Scientific Rigor Benchmarks...\n")
     
     results = []
     for model_path in gguf_files:
