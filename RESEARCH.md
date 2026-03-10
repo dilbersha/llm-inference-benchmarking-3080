@@ -31,4 +31,26 @@ Continuous, compute-heavy inference places immense stress on consumer-grade GPUs
 ### Throttling Analysis
 By continuously polling the GPU Temperature (°C) and SM Clock Speed (MHz), we can identify thermal saturation. If the GPU reaches its thermal limit (typically around 83°C - 87°C for the 3080), it will dynamically down-clock the SMs to shed heat.
 * **Impact on TPS:** If thermal throttling occurs during an extended inference session, the Throughput (TPS) will steadily decline as the clock speed drops, invalidating short-burst benchmark metrics. 
-* **Conclusion for Production:** For true "Production AI Systems", cooling infrastructure and thermal limits are just as critical as VRAM capacity when deploying to bare-metal edge devices. Sustained heavy-batch inference will inevitably hit the thermal wall on consumer hardware without adequate cooling solutions.
+
+## Reproducibility Protocol
+To ensure the scientific validity of these findings, all benchmarks were conducted under a strict, deterministic protocol:
+
+*   **Inference Engine:** `llama.cpp` (Build Hash: `213c4a0b81788e058c30479842954fb0815be61a`).
+*   **Sampling Parameters:** To isolate hardware performance from stochastic variance, we enforced deterministic sampling:
+    *   `Temperature`: 0.0 (Greedy Decoding)
+    *   `Seed`: 42
+    *   `Top-K`: 1
+*   **Environment:** 
+    *   **OS:** Ubuntu 22.04 LTS running within WSL2 (Windows 11).
+    *   **Runtime:** Python 3.10 virtual environment.
+    *   **Drivers:** NVIDIA Game Ready Driver v551.xx (or later) with CUDA 12.x toolkit.
+*   **Hardware State:** All background non-essential OS tasks were minimized. The GPU was allowed to return to an idle thermal state (<40°C) between major configuration swaps.
+
+## Threats to Validity
+While we strive for rigor, several systemic factors may influence the absolute values reported:
+1.  **WSL2 Virtualization Latency:** Running CUDA workloads within a WSL2 container introduces a minor I/O and scheduling overhead compared to bare-metal Linux.
+2.  **OS Jitter:** Background system interrupts and telemetry polling intervals (500ms) may introduce micro-fluctuations in power and clock reporting.
+3.  **Quantization Variation:** GGUF quantization (K-Quants) utilizes heuristics that may vary slightly across different `llama.cpp` releases.
+
+## Conclusion for Production
+For true "Production AI Systems", cooling infrastructure and thermal limits are just as critical as VRAM capacity when deploying to bare-metal edge devices. Sustained heavy-batch inference will inevitably hit the thermal wall on consumer hardware without adequate cooling solutions.
