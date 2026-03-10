@@ -165,7 +165,14 @@ def run_benchmark(model_path, llama_cli_path, thermal_log_csv, context_length=20
             if match_generic:
                 tokens_per_sec = float(match_generic.group(1))
                 
-    family = "Qwen" if "qwen" in model_name.lower() else "Mistral" if "mistral" in model_name.lower() else "Unknown"
+    family = "Unknown"
+    lower_name = model_name.lower()
+    if "qwen" in lower_name:
+        family = "Qwen"
+    elif "mistral" in lower_name:
+        family = "Mistral"
+    elif "llama" in lower_name:
+        family = "Llama"
     tokens_per_joule = (tokens_per_sec / avg_power) if avg_power > 0 else 0.0
         
     return {
@@ -181,10 +188,7 @@ def run_benchmark(model_path, llama_cli_path, thermal_log_csv, context_length=20
     }
 
 def main():
-    dirs_to_scan = [
-        os.path.expanduser("~/dev/llm_models/qwen3b_gguf"),
-        os.path.expanduser("~/dev/llm_models/mistral7b")
-    ]
+    base_models_dir = os.path.expanduser("~/dev/llm_models")
     
     base_dir = os.path.abspath(os.path.dirname(__file__))
     llama_cli = os.path.normpath(os.path.join(base_dir, "../../llama.cpp/build/bin/llama-cli"))
@@ -204,12 +208,7 @@ def main():
         
     ensure_wikitext(dataset_path)
         
-    gguf_files = []
-    for d in dirs_to_scan:
-        if os.path.exists(d):
-            gguf_files.extend(glob.glob(os.path.join(d, "*.gguf")))
-        else:
-            print(f"Warning: Models directory not found at {d}")
+    gguf_files = glob.glob(os.path.join(base_models_dir, "**", "*.gguf"), recursive=True)
             
     gguf_files = sorted(gguf_files)
     
@@ -227,9 +226,7 @@ def main():
     for model_path in gguf_files:
         model_name = os.path.basename(model_path)
         
-        context_lengths = [2048]
-        if "q5_k_m" in model_name.lower() and "qwen" in model_name.lower():
-            context_lengths = [512, 2048, 8192]
+        context_lengths = [512, 2048, 8192]
             
         for ctx_len in context_lengths:
             print(f"Benchmarking {model_name} (Context: {ctx_len})...")
