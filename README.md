@@ -78,8 +78,8 @@ Before running the suite, ensure you have:
 
 1. **Clone the Repository:**
    ```bash
-   git clone https://github.com/dilbersha/llm-inference-benchmarking-3080.git
-   cd llm-inference-benchmarking-3080
+   git clone https://github.com/dilbersha/universal-llm-telemetry-suite.git
+   cd universal-llm-telemetry-suite
    ```
 
 2. **Automated Setup:**
