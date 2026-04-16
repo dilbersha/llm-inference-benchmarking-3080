@@ -9,6 +9,8 @@ A cross-platform (macOS / WSL2 / Linux) framework for auditing LLM inference per
 
 **Supports any GGUF model compatible with llama.cpp.**
 
+📝 **Deep dive:** [Why Tokens Per Joule Matters More Than Tokens Per Second](https://dilber.hashnode.dev/tokens-per-joule-llm-inference) — full methodology, cost math (Joules → kWh → USD), and VRAM mitigation strategies.
+
 ## Reference Baselines: The Efficiency Gap
 
 ![M1 Pro vs RTX 3080 Comparison](docs/assets/m1_pro_vs_3080_comparison.png)
