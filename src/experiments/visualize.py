@@ -249,6 +249,104 @@ def plot_kv_cache(data_path: str, output_dir: str = "./reports/charts"):
     print(f"  ✓ kv_cache_quality_vs_memory.png")
 
 
+def plot_quantization_sensitivity(data_path: str, output_dir: str = "./reports/charts"):
+    """Generate quantization sensitivity heatmap — the LinkedIn chart."""
+    with open(data_path) as f:
+        data = json.load(f)
+
+    out = Path(output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+
+    # Process each model
+    for model_name in ["12L-768H", "24L-1024H"]:
+        trials = [t for t in data["trials"] if t["config"]["model"] == model_name]
+        if not trials:
+            continue
+
+        num_layers = trials[0]["config"]["num_layers"]
+        bit_widths = sorted(set(t["config"]["bits"] for t in trials))
+        bit_widths_no16 = [b for b in bit_widths if b < 16]
+
+        # Build sensitivity matrix [layers × bits]
+        matrix = np.zeros((num_layers, len(bit_widths_no16)))
+        for t in trials:
+            if t["config"]["bits"] >= 16:
+                continue
+            layer_idx = t["config"]["layer_idx"]
+            bit_idx = bit_widths_no16.index(t["config"]["bits"])
+            matrix[layer_idx, bit_idx] = t["metrics"]["sensitivity"]
+
+        # ── Heatmap ──────────────────────────────────────────────
+        fig, ax = plt.subplots(figsize=(8, max(6, num_layers * 0.35)))
+        fig.patch.set_facecolor("#1a1a2e")
+        ax.set_facecolor("#16213e")
+
+        im = ax.imshow(
+            matrix,
+            cmap="RdYlGn_r",  # Red=sensitive, Green=safe
+            aspect="auto",
+            interpolation="nearest",
+            vmin=0,
+            vmax=max(0.5, matrix.max()),
+        )
+
+        ax.set_xticks(range(len(bit_widths_no16)))
+        ax.set_xticklabels([f"{b}-bit" for b in bit_widths_no16], color="#ccc")
+        ax.set_yticks(range(num_layers))
+        ax.set_yticklabels([f"L{i}" for i in range(num_layers)], color="#ccc", fontsize=8)
+
+        ax.set_xlabel("Quantization Precision", fontsize=12, color="#ccc")
+        ax.set_ylabel("Transformer Layer", fontsize=12, color="#ccc")
+        ax.set_title(
+            f"Quantization Sensitivity Map ({model_name})",
+            fontsize=14, fontweight="bold", color="white", pad=15,
+        )
+
+        # Colorbar
+        cbar = plt.colorbar(im, ax=ax, shrink=0.8)
+        cbar.set_label("Sensitivity (higher = more fragile)", color="#ccc")
+        cbar.ax.tick_params(colors="#999")
+
+        # Annotate cells with values
+        for i in range(num_layers):
+            for j in range(len(bit_widths_no16)):
+                val = matrix[i, j]
+                color = "white" if val > 0.3 else "#333"
+                ax.text(j, i, f"{val:.2f}", ha="center", va="center",
+                        fontsize=6 if num_layers > 16 else 7, color=color)
+
+        fig.tight_layout()
+        fname = f"quant_sensitivity_{model_name.replace('-', '_')}.png"
+        fig.savefig(out / fname, dpi=150, bbox_inches="tight")
+        plt.close(fig)
+        print(f"  ✓ {fname}")
+
+    # ── Line chart: sensitivity by layer position ─────────────────
+    fig, ax = _setup_chart(
+        "Quantization Sensitivity by Layer Position",
+        "Layer Position (0=first, 1=last)",
+        "Sensitivity (1 - cosine similarity)",
+    )
+
+    for i, bits in enumerate([2, 3, 4, 8]):
+        trials = [t for t in data["trials"]
+                  if t["config"]["bits"] == bits
+                  and t["config"]["model"] == "24L-1024H"]
+        trials.sort(key=lambda x: x["config"]["layer_position"])
+
+        positions = [t["config"]["layer_position"] for t in trials]
+        sensitivity = [t["metrics"]["sensitivity"] for t in trials]
+
+        ax.plot(positions, sensitivity, "o-", color=PALETTE[i],
+                label=f"{bits}-bit", linewidth=2, markersize=4)
+
+    ax.legend(fontsize=11, facecolor="#1a1a2e", edgecolor="#444")
+    fig.tight_layout()
+    fig.savefig(out / "quant_sensitivity_by_position.png", dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"  ✓ quant_sensitivity_by_position.png")
+
+
 def generate_all_charts():
     """Generate all visualization charts."""
     print("Generating experiment visualizations...")
@@ -260,6 +358,7 @@ def generate_all_charts():
 
     tc_files = sorted(exp_dir.glob("token_confidence_*.json"))
     ah_files = sorted(exp_dir.glob("attention_head_*.json"))
+    qs_files = sorted(exp_dir.glob("quantization_sensitivity_*.json"))
     kv_file = Path("./reports/kv_cache/initial_results.json")
 
     if tc_files:
@@ -273,6 +372,10 @@ def generate_all_charts():
     if kv_file.exists():
         print("\nKV Cache Eviction:")
         plot_kv_cache(str(kv_file), charts_dir)
+
+    if qs_files:
+        print("\nQuantization Sensitivity:")
+        plot_quantization_sensitivity(str(qs_files[-1]), charts_dir)
 
     print(f"\n✅ All charts saved to {charts_dir}/")
 
