@@ -347,6 +347,170 @@ def plot_quantization_sensitivity(data_path: str, output_dir: str = "./reports/c
     print(f"  ✓ quant_sensitivity_by_position.png")
 
 
+def plot_speculative_decoding(data_path: str, output_dir: str = "./reports/charts"):
+    """Generate self-speculative decoding charts."""
+    with open(data_path) as f:
+        data = json.load(f)
+
+    out = Path(output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+
+    # ── Speedup vs Quality by model ──────────────────────────────
+    fig, ax = _setup_chart(
+        "Self-Speculative Decoding: Speedup vs Quality",
+        "Cosine Similarity to Full Model",
+        "Effective Speedup (×)",
+    )
+
+    for i, model in enumerate(["12L-768H", "24L-1024H", "32L-2048H"]):
+        trials = [t for t in data["trials"] if t["config"]["model"] == model]
+        trials.sort(key=lambda x: x["config"]["exit_layer"])
+
+        quality = [t["metrics"]["cosine_similarity"] for t in trials]
+        speedup = [t["metrics"]["effective_speedup"] for t in trials]
+
+        ax.plot(quality, speedup, "o-", color=PALETTE[i],
+                label=model, linewidth=2, markersize=5)
+
+    ax.axhline(y=1.0, color="#666", linestyle="--", alpha=0.5, label="Break-even")
+    ax.legend(fontsize=10, facecolor="#1a1a2e", edgecolor="#444")
+    fig.tight_layout()
+    fig.savefig(out / "speculative_speedup_vs_quality.png", dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"  ✓ speculative_speedup_vs_quality.png")
+
+    # ── Acceptance rate by exit position ──────────────────────────
+    fig, ax = _setup_chart(
+        "Draft Token Acceptance Rate by Exit Layer",
+        "Exit Layer Position (0=first, 1=last)",
+        "Acceptance Rate (%)",
+    )
+
+    for i, model in enumerate(["12L-768H", "24L-1024H", "32L-2048H"]):
+        trials = [t for t in data["trials"] if t["config"]["model"] == model]
+        trials.sort(key=lambda x: x["config"]["exit_position"])
+
+        positions = [t["config"]["exit_position"] for t in trials]
+        acceptance = [t["metrics"]["acceptance_rate"] * 100 for t in trials]
+
+        ax.plot(positions, acceptance, "s-", color=PALETTE[i],
+                label=model, linewidth=2, markersize=5)
+
+    ax.legend(fontsize=10, facecolor="#1a1a2e", edgecolor="#444")
+    ax.yaxis.set_major_formatter(ticker.PercentFormatter())
+    fig.tight_layout()
+    fig.savefig(out / "speculative_acceptance_rate.png", dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"  ✓ speculative_acceptance_rate.png")
+
+
+def plot_transfer_benchmark(data_path: str, output_dir: str = "./reports/charts"):
+    """Generate memory transfer benchmark charts."""
+    with open(data_path) as f:
+        data = json.load(f)
+
+    out = Path(output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+
+    fig, ax = _setup_chart(
+        "PCIe Transfer: Pinned vs Paged Memory (RTX 3080)",
+        "Transfer Size (MB)",
+        "Bandwidth (GB/s)",
+    )
+
+    configs = [
+        ("gpu_to_cpu", False, "GPU→CPU (paged)", COLORS["secondary"], "o-"),
+        ("gpu_to_cpu", True, "GPU→CPU (pinned)", COLORS["primary"], "o--"),
+        ("cpu_to_gpu", False, "CPU→GPU (paged)", COLORS["quaternary"], "s-"),
+        ("cpu_to_gpu", True, "CPU→GPU (pinned)", COLORS["tertiary"], "s--"),
+    ]
+
+    for direction, pinned, label, color, marker in configs:
+        trials = [t for t in data["trials"]
+                  if t["config"]["direction"] == direction
+                  and t["config"]["use_pinned_memory"] == pinned]
+        trials.sort(key=lambda x: x["config"]["size_mb"])
+
+        sizes = [t["config"]["size_mb"] for t in trials]
+        bw = [t["metrics"]["bandwidth_gbps_mean"] for t in trials]
+
+        ax.plot(sizes, bw, marker, color=color, label=label, linewidth=2, markersize=6)
+
+    ax.set_xscale("log")
+    ax.legend(fontsize=9, facecolor="#1a1a2e", edgecolor="#444")
+    fig.tight_layout()
+    fig.savefig(out / "transfer_bandwidth.png", dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"  ✓ transfer_bandwidth.png")
+
+
+def plot_reasoning_waste(data_path: str, output_dir: str = "./reports/charts"):
+    """Generate reasoning token waste charts."""
+    with open(data_path) as f:
+        data = json.load(f)
+
+    out = Path(output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+
+    # ── Answer correctness by tokens removed ─────────────────────
+    fig, ax = _setup_chart(
+        "Reasoning Token Waste: Can You Remove Thinking Tokens?",
+        "Tokens Removed (%)",
+        "Answer Still Correct (%)",
+    )
+
+    for i, difficulty in enumerate(["easy", "medium", "hard"]):
+        for j, strategy in enumerate(["keep_first", "importance_sample"]):
+            trials = [t for t in data["trials"]
+                      if t["config"]["difficulty"] == difficulty
+                      and t["config"]["strategy"] == strategy
+                      and t["config"]["chain_length"] == 200]
+            trials.sort(key=lambda x: x["config"]["keep_fraction"])
+
+            removed_pct = [t["metrics"]["tokens_removed_pct"] for t in trials]
+            correct = [t["metrics"]["answer_correct"] * 100 for t in trials]
+
+            ls = "-" if strategy == "keep_first" else "--"
+            label = f"{difficulty} ({strategy.replace('_', ' ')})"
+            ax.plot(removed_pct, correct, f"o{ls}", color=PALETTE[i * 2 + j],
+                    label=label, linewidth=2, markersize=5)
+
+    ax.legend(fontsize=8, facecolor="#1a1a2e", edgecolor="#444", ncol=2)
+    ax.yaxis.set_major_formatter(ticker.PercentFormatter())
+    ax.set_xlim(-5, 95)
+    fig.tight_layout()
+    fig.savefig(out / "reasoning_waste_correctness.png", dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"  ✓ reasoning_waste_correctness.png")
+
+    # ── Strategy comparison ──────────────────────────────────────
+    fig, ax = _setup_chart(
+        "Truncation Strategy Comparison (Medium Difficulty)",
+        "Tokens Removed (%)",
+        "Quality (Cosine Similarity)",
+    )
+
+    for i, strategy in enumerate(["keep_first", "keep_last", "remove_middle", "importance_sample"]):
+        trials = [t for t in data["trials"]
+                  if t["config"]["difficulty"] == "medium"
+                  and t["config"]["strategy"] == strategy
+                  and t["config"]["chain_length"] == 200]
+        trials.sort(key=lambda x: x["config"]["keep_fraction"])
+
+        removed = [t["metrics"]["tokens_removed_pct"] for t in trials]
+        quality = [t["metrics"]["quality_cosine"] for t in trials]
+
+        ax.plot(removed, quality, "o-", color=PALETTE[i],
+                label=strategy.replace("_", " "), linewidth=2, markersize=5)
+
+    ax.legend(fontsize=10, facecolor="#1a1a2e", edgecolor="#444")
+    ax.set_xlim(-5, 95)
+    fig.tight_layout()
+    fig.savefig(out / "reasoning_strategy_comparison.png", dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"  ✓ reasoning_strategy_comparison.png")
+
+
 def generate_all_charts():
     """Generate all visualization charts."""
     print("Generating experiment visualizations...")
@@ -359,6 +523,9 @@ def generate_all_charts():
     tc_files = sorted(exp_dir.glob("token_confidence_*.json"))
     ah_files = sorted(exp_dir.glob("attention_head_*.json"))
     qs_files = sorted(exp_dir.glob("quantization_sensitivity_*.json"))
+    sd_files = sorted(exp_dir.glob("self_speculative_*.json"))
+    tb_files = sorted(exp_dir.glob("memory_transfer_*.json"))
+    rw_files = sorted(exp_dir.glob("reasoning_token_waste_*.json"))
     kv_file = Path("./reports/kv_cache/initial_results.json")
 
     if tc_files:
@@ -377,8 +544,21 @@ def generate_all_charts():
         print("\nQuantization Sensitivity:")
         plot_quantization_sensitivity(str(qs_files[-1]), charts_dir)
 
+    if sd_files:
+        print("\nSelf-Speculative Decoding:")
+        plot_speculative_decoding(str(sd_files[-1]), charts_dir)
+
+    if tb_files:
+        print("\nMemory Transfer:")
+        plot_transfer_benchmark(str(tb_files[-1]), charts_dir)
+
+    if rw_files:
+        print("\nReasoning Token Waste:")
+        plot_reasoning_waste(str(rw_files[-1]), charts_dir)
+
     print(f"\n✅ All charts saved to {charts_dir}/")
 
 
 if __name__ == "__main__":
     generate_all_charts()
+

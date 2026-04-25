@@ -1,0 +1,887 @@
+{
+  "experiment": "memory_transfer_benchmark",
+  "description": "Benchmarks PCIe transfer latency for KV cache offloading. Tests various cache sizes, directions, and pinned vs. paged memory.",
+  "hardware": {
+    "gpu_name": "NVIDIA GeForce RTX 3080",
+    "gpu_count": 1,
+    "gpu_vram_mb": 10239.375,
+    "gpu_driver": "576.88",
+    "cuda_version": "12.8",
+    "cpu_name": "x86_64",
+    "cpu_cores": 16,
+    "ram_gb": 15.6,
+    "python_version": "3.10.12",
+    "torch_version": "2.10.0+cu128",
+    "os_info": "Linux 6.6.87.2-microsoft-standard-WSL2"
+  },
+  "timestamp": "2026-04-25T19:51:59.129970",
+  "total_duration_seconds": 16.354588270187378,
+  "seed": 42,
+  "num_trials": 36,
+  "trials": [
+    {
+      "trial_id": "memory_transfer_benchmark_t0001",
+      "config": {
+        "size_mb": 1,
+        "direction": "gpu_to_cpu",
+        "use_pinned_memory": false,
+        "device": "cuda"
+      },
+      "config_hash": "3ad92349c96a",
+      "metrics": {
+        "transfer_time_ms_mean": 0.15656490068067797,
+        "transfer_time_ms_min": 0.1499899990449194,
+        "transfer_time_ms_max": 0.17119900076068006,
+        "transfer_time_ms_p50": 0.1541070014354773,
+        "bandwidth_gbps_mean": 6.251176733036313,
+        "bandwidth_gbps_max": 6.510850764840239
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:42.775950",
+      "end_time": "2026-04-25T19:51:43.002964",
+      "duration_seconds": 0.22701686399886967,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0002",
+      "config": {
+        "size_mb": 1,
+        "direction": "gpu_to_cpu",
+        "use_pinned_memory": true,
+        "device": "cuda"
+      },
+      "config_hash": "2dca1ab15333",
+      "metrics": {
+        "transfer_time_ms_mean": 0.09514530029264279,
+        "transfer_time_ms_min": 0.0817319996713195,
+        "transfer_time_ms_max": 0.12441199942259118,
+        "transfer_time_ms_p50": 0.09237199992639944,
+        "bandwidth_gbps_mean": 10.438402266910769,
+        "bandwidth_gbps_max": 11.948349531727958
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:43.003067",
+      "end_time": "2026-04-25T19:51:43.007093",
+      "duration_seconds": 0.004029596999316709,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0003",
+      "config": {
+        "size_mb": 1,
+        "direction": "cpu_to_gpu",
+        "use_pinned_memory": false,
+        "device": "cuda"
+      },
+      "config_hash": "aea6e733723f",
+      "metrics": {
+        "transfer_time_ms_mean": 0.15748390069347806,
+        "transfer_time_ms_min": 0.14498000018647872,
+        "transfer_time_ms_max": 0.18461600120645016,
+        "transfer_time_ms_p50": 0.1593670021975413,
+        "bandwidth_gbps_mean": 6.2319205707841325,
+        "bandwidth_gbps_max": 6.7358428662154
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:43.007133",
+      "end_time": "2026-04-25T19:51:43.011331",
+      "duration_seconds": 0.004203157001029467,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0004",
+      "config": {
+        "size_mb": 1,
+        "direction": "cpu_to_gpu",
+        "use_pinned_memory": true,
+        "device": "cuda"
+      },
+      "config_hash": "37bd6174ca7c",
+      "metrics": {
+        "transfer_time_ms_mean": 0.11642379977274686,
+        "transfer_time_ms_min": 0.0837359984871,
+        "transfer_time_ms_max": 0.15466800323338248,
+        "transfer_time_ms_p50": 0.137802999233827,
+        "bandwidth_gbps_mean": 8.96040956570206,
+        "bandwidth_gbps_max": 11.662397506974791
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:43.011373",
+      "end_time": "2026-04-25T19:51:43.014220",
+      "duration_seconds": 0.0028500739972514566,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0005",
+      "config": {
+        "size_mb": 5,
+        "direction": "gpu_to_cpu",
+        "use_pinned_memory": false,
+        "device": "cuda"
+      },
+      "config_hash": "e8e29fcdfdb6",
+      "metrics": {
+        "transfer_time_ms_mean": 0.7977787994605023,
+        "transfer_time_ms_min": 0.7055059977574274,
+        "transfer_time_ms_max": 1.0827999976754654,
+        "transfer_time_ms_p50": 0.7634610010427423,
+        "bandwidth_gbps_mean": 6.215461477943914,
+        "bandwidth_gbps_max": 6.921007780969775
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:43.014259",
+      "end_time": "2026-04-25T19:51:43.030498",
+      "duration_seconds": 0.016242472996964352,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0006",
+      "config": {
+        "size_mb": 5,
+        "direction": "gpu_to_cpu",
+        "use_pinned_memory": true,
+        "device": "cuda"
+      },
+      "config_hash": "2921e55d5168",
+      "metrics": {
+        "transfer_time_ms_mean": 0.28153620041848626,
+        "transfer_time_ms_min": 0.25493499924778007,
+        "transfer_time_ms_max": 0.3273680013080593,
+        "transfer_time_ms_p50": 0.27398599922889844,
+        "bandwidth_gbps_mean": 17.4514023514413,
+        "bandwidth_gbps_max": 19.15316654993388
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:43.030539",
+      "end_time": "2026-04-25T19:51:43.043358",
+      "duration_seconds": 0.01282195399835473,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0007",
+      "config": {
+        "size_mb": 5,
+        "direction": "cpu_to_gpu",
+        "use_pinned_memory": false,
+        "device": "cuda"
+      },
+      "config_hash": "0dcb4c6ed345",
+      "metrics": {
+        "transfer_time_ms_mean": 0.593271399702644,
+        "transfer_time_ms_min": 0.5562170008488465,
+        "transfer_time_ms_max": 0.7482660003006458,
+        "transfer_time_ms_p50": 0.5827860004501417,
+        "bandwidth_gbps_mean": 8.28601064626202,
+        "bandwidth_gbps_max": 8.778610672720012
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:43.043396",
+      "end_time": "2026-04-25T19:51:43.057769",
+      "duration_seconds": 0.014376211998751387,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0008",
+      "config": {
+        "size_mb": 5,
+        "direction": "cpu_to_gpu",
+        "use_pinned_memory": true,
+        "device": "cuda"
+      },
+      "config_hash": "84f0b8c35bb1",
+      "metrics": {
+        "transfer_time_ms_mean": 0.31752619943290483,
+        "transfer_time_ms_min": 0.30016999880899675,
+        "transfer_time_ms_max": 0.4131109999434557,
+        "transfer_time_ms_p50": 0.30304499887279235,
+        "bandwidth_gbps_mean": 15.513096120328717,
+        "bandwidth_gbps_max": 16.266823864389647
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:43.057816",
+      "end_time": "2026-04-25T19:51:43.065804",
+      "duration_seconds": 0.007990882997546578,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0009",
+      "config": {
+        "size_mb": 10,
+        "direction": "gpu_to_cpu",
+        "use_pinned_memory": false,
+        "device": "cuda"
+      },
+      "config_hash": "a96ddb94ecab",
+      "metrics": {
+        "transfer_time_ms_mean": 1.0823105003510136,
+        "transfer_time_ms_min": 1.0556989982433151,
+        "transfer_time_ms_max": 1.1295660005998798,
+        "transfer_time_ms_p50": 1.0801149983308278,
+        "bandwidth_gbps_mean": 9.027539793940623,
+        "bandwidth_gbps_max": 9.250387673238315
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:43.065841",
+      "end_time": "2026-04-25T19:51:43.090380",
+      "duration_seconds": 0.024542372000723844,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0010",
+      "config": {
+        "size_mb": 10,
+        "direction": "gpu_to_cpu",
+        "use_pinned_memory": true,
+        "device": "cuda"
+      },
+      "config_hash": "ee1626749843",
+      "metrics": {
+        "transfer_time_ms_mean": 0.5031473992858082,
+        "transfer_time_ms_min": 0.498929999594111,
+        "transfer_time_ms_max": 0.5121350004628766,
+        "transfer_time_ms_p50": 0.5012239998904988,
+        "bandwidth_gbps_mean": 19.410388475626156,
+        "bandwidth_gbps_max": 19.573136528059088
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:43.090422",
+      "end_time": "2026-04-25T19:51:43.114024",
+      "duration_seconds": 0.023605495000083465,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0011",
+      "config": {
+        "size_mb": 10,
+        "direction": "cpu_to_gpu",
+        "use_pinned_memory": false,
+        "device": "cuda"
+      },
+      "config_hash": "0a59e006ff66",
+      "metrics": {
+        "transfer_time_ms_mean": 1.025675900382339,
+        "transfer_time_ms_min": 0.9632660003262572,
+        "transfer_time_ms_max": 1.199796999571845,
+        "transfer_time_ms_p50": 0.991068001894746,
+        "bandwidth_gbps_mean": 9.571179413349734,
+        "bandwidth_gbps_max": 10.138035596286377
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:43.114068",
+      "end_time": "2026-04-25T19:51:43.141644",
+      "duration_seconds": 0.027578385001106653,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0012",
+      "config": {
+        "size_mb": 10,
+        "direction": "cpu_to_gpu",
+        "use_pinned_memory": true,
+        "device": "cuda"
+      },
+      "config_hash": "e6e22ea91fe1",
+      "metrics": {
+        "transfer_time_ms_mean": 0.48651259967300575,
+        "transfer_time_ms_min": 0.4541970010905061,
+        "transfer_time_ms_max": 0.5151010009285528,
+        "transfer_time_ms_p50": 0.4936910008837003,
+        "bandwidth_gbps_mean": 20.11037515346292,
+        "bandwidth_gbps_max": 21.500857505780935
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:43.141681",
+      "end_time": "2026-04-25T19:51:43.155528",
+      "duration_seconds": 0.013850093000655761,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0013",
+      "config": {
+        "size_mb": 25,
+        "direction": "gpu_to_cpu",
+        "use_pinned_memory": false,
+        "device": "cuda"
+      },
+      "config_hash": "9c407b8a8741",
+      "metrics": {
+        "transfer_time_ms_mean": 2.675279300456168,
+        "transfer_time_ms_min": 2.5647129987191875,
+        "transfer_time_ms_max": 3.2166889977816027,
+        "transfer_time_ms_p50": 2.6057700015371665,
+        "bandwidth_gbps_mean": 9.16360084244406,
+        "bandwidth_gbps_max": 9.51921813949254
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:43.155573",
+      "end_time": "2026-04-25T19:51:43.214621",
+      "duration_seconds": 0.05905303499821457,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0014",
+      "config": {
+        "size_mb": 25,
+        "direction": "gpu_to_cpu",
+        "use_pinned_memory": true,
+        "device": "cuda"
+      },
+      "config_hash": "5a8bf73900bb",
+      "metrics": {
+        "transfer_time_ms_mean": 1.401127700228244,
+        "transfer_time_ms_min": 1.2699890030489769,
+        "transfer_time_ms_max": 1.606675999937579,
+        "transfer_time_ms_p50": 1.381100999424234,
+        "bandwidth_gbps_mean": 17.52263324219812,
+        "bandwidth_gbps_max": 19.223837719371556
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:43.214671",
+      "end_time": "2026-04-25T19:51:43.263922",
+      "duration_seconds": 0.049260310999670764,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0015",
+      "config": {
+        "size_mb": 25,
+        "direction": "cpu_to_gpu",
+        "use_pinned_memory": false,
+        "device": "cuda"
+      },
+      "config_hash": "ba75d664d923",
+      "metrics": {
+        "transfer_time_ms_mean": 1.934560199151747,
+        "transfer_time_ms_min": 1.7618860001675785,
+        "transfer_time_ms_max": 2.0956779990228824,
+        "transfer_time_ms_p50": 1.981456000066828,
+        "bandwidth_gbps_mean": 12.658482893390278,
+        "bandwidth_gbps_max": 13.856777622205922
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:43.264027",
+      "end_time": "2026-04-25T19:51:43.330031",
+      "duration_seconds": 0.06601081600092584,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0016",
+      "config": {
+        "size_mb": 25,
+        "direction": "cpu_to_gpu",
+        "use_pinned_memory": true,
+        "device": "cuda"
+      },
+      "config_hash": "876f22336828",
+      "metrics": {
+        "transfer_time_ms_mean": 1.1978850005107233,
+        "transfer_time_ms_min": 1.116022001951933,
+        "transfer_time_ms_max": 1.2844660013797693,
+        "transfer_time_ms_p50": 1.2382890017761383,
+        "bandwidth_gbps_mean": 20.445818887878463,
+        "bandwidth_gbps_max": 21.875968804646842
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:43.330110",
+      "end_time": "2026-04-25T19:51:43.364180",
+      "duration_seconds": 0.03407927700027358,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0017",
+      "config": {
+        "size_mb": 50,
+        "direction": "gpu_to_cpu",
+        "use_pinned_memory": false,
+        "device": "cuda"
+      },
+      "config_hash": "151cb58ffc9a",
+      "metrics": {
+        "transfer_time_ms_mean": 5.342264500359306,
+        "transfer_time_ms_min": 5.1116240028932225,
+        "transfer_time_ms_max": 6.063338001695229,
+        "transfer_time_ms_p50": 5.29416300196317,
+        "bandwidth_gbps_mean": 9.16288707770288,
+        "bandwidth_gbps_max": 9.552370239353063
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:43.364260",
+      "end_time": "2026-04-25T19:51:43.489081",
+      "duration_seconds": 0.12483115600116435,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0018",
+      "config": {
+        "size_mb": 50,
+        "direction": "gpu_to_cpu",
+        "use_pinned_memory": true,
+        "device": "cuda"
+      },
+      "config_hash": "a50e680d2ddc",
+      "metrics": {
+        "transfer_time_ms_mean": 2.1283037000102922,
+        "transfer_time_ms_min": 2.1017409999330994,
+        "transfer_time_ms_max": 2.188190999731887,
+        "transfer_time_ms_p50": 2.126154999132268,
+        "bandwidth_gbps_mean": 22.944695503507894,
+        "bandwidth_gbps_max": 23.232227473106462
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:43.489166",
+      "end_time": "2026-04-25T19:51:43.578714",
+      "duration_seconds": 0.08955438300108653,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0019",
+      "config": {
+        "size_mb": 50,
+        "direction": "cpu_to_gpu",
+        "use_pinned_memory": false,
+        "device": "cuda"
+      },
+      "config_hash": "e611e8d79dd1",
+      "metrics": {
+        "transfer_time_ms_mean": 4.8267252001096494,
+        "transfer_time_ms_min": 3.980647001299076,
+        "transfer_time_ms_max": 5.232999999861931,
+        "transfer_time_ms_p50": 4.9713519983924925,
+        "bandwidth_gbps_mean": 10.190189456825802,
+        "bandwidth_gbps_max": 12.266379054476582
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:43.578782",
+      "end_time": "2026-04-25T19:51:43.723995",
+      "duration_seconds": 0.14522814600059064,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0020",
+      "config": {
+        "size_mb": 50,
+        "direction": "cpu_to_gpu",
+        "use_pinned_memory": true,
+        "device": "cuda"
+      },
+      "config_hash": "89b4cb18ce1a",
+      "metrics": {
+        "transfer_time_ms_mean": 3.0123038002784597,
+        "transfer_time_ms_min": 2.1269370008667465,
+        "transfer_time_ms_max": 3.4953789981955197,
+        "transfer_time_ms_p50": 3.293080000730697,
+        "bandwidth_gbps_mean": 16.78728094989824,
+        "bandwidth_gbps_max": 22.95701517257074
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:43.724094",
+      "end_time": "2026-04-25T19:51:43.798798",
+      "duration_seconds": 0.07472998199955327,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0021",
+      "config": {
+        "size_mb": 100,
+        "direction": "gpu_to_cpu",
+        "use_pinned_memory": false,
+        "device": "cuda"
+      },
+      "config_hash": "5b1a65a19be0",
+      "metrics": {
+        "transfer_time_ms_mean": 12.432293700112496,
+        "transfer_time_ms_min": 12.181039001006866,
+        "transfer_time_ms_max": 13.31887999913306,
+        "transfer_time_ms_p50": 12.344591999863042,
+        "bandwidth_gbps_mean": 7.860097926047044,
+        "bandwidth_gbps_max": 8.017070628534059
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:43.798996",
+      "end_time": "2026-04-25T19:51:44.065433",
+      "duration_seconds": 0.2664467950016842,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0022",
+      "config": {
+        "size_mb": 100,
+        "direction": "gpu_to_cpu",
+        "use_pinned_memory": true,
+        "device": "cuda"
+      },
+      "config_hash": "6b2732105508",
+      "metrics": {
+        "transfer_time_ms_mean": 4.099649898489588,
+        "transfer_time_ms_min": 4.067956997459987,
+        "transfer_time_ms_max": 4.174384997895686,
+        "transfer_time_ms_p50": 4.0850180012057535,
+        "bandwidth_gbps_mean": 23.82226264940446,
+        "bandwidth_gbps_max": 24.006214928273845
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:44.065530",
+      "end_time": "2026-04-25T19:51:44.238683",
+      "duration_seconds": 0.1731617430014012,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0023",
+      "config": {
+        "size_mb": 100,
+        "direction": "cpu_to_gpu",
+        "use_pinned_memory": false,
+        "device": "cuda"
+      },
+      "config_hash": "02c0250a69bd",
+      "metrics": {
+        "transfer_time_ms_mean": 8.96679940087779,
+        "transfer_time_ms_min": 8.36271700245561,
+        "transfer_time_ms_max": 10.848133999388665,
+        "transfer_time_ms_p50": 8.867197000654414,
+        "bandwidth_gbps_mean": 10.950130968140527,
+        "bandwidth_gbps_max": 11.6775744021141
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:44.238766",
+      "end_time": "2026-04-25T19:51:44.525211",
+      "duration_seconds": 0.2864681400023983,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0024",
+      "config": {
+        "size_mb": 100,
+        "direction": "cpu_to_gpu",
+        "use_pinned_memory": true,
+        "device": "cuda"
+      },
+      "config_hash": "568a176fb11d",
+      "metrics": {
+        "transfer_time_ms_mean": 4.1443573998549255,
+        "transfer_time_ms_min": 4.090548998647137,
+        "transfer_time_ms_max": 4.257019001670415,
+        "transfer_time_ms_p50": 4.1369530008523725,
+        "bandwidth_gbps_mean": 23.56691445495455,
+        "bandwidth_gbps_max": 23.873629195567087
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:44.525357",
+      "end_time": "2026-04-25T19:51:44.660113",
+      "duration_seconds": 0.1347765350001282,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0025",
+      "config": {
+        "size_mb": 250,
+        "direction": "gpu_to_cpu",
+        "use_pinned_memory": false,
+        "device": "cuda"
+      },
+      "config_hash": "7bd6d2f8faf0",
+      "metrics": {
+        "transfer_time_ms_mean": 32.13218860073539,
+        "transfer_time_ms_min": 26.399656002467964,
+        "transfer_time_ms_max": 37.862312001379905,
+        "transfer_time_ms_p50": 33.13598200111301,
+        "bandwidth_gbps_mean": 7.693554207739351,
+        "bandwidth_gbps_max": 9.247871448672536
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:44.660225",
+      "end_time": "2026-04-25T19:51:45.288935",
+      "duration_seconds": 0.6287225609994493,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0026",
+      "config": {
+        "size_mb": 250,
+        "direction": "gpu_to_cpu",
+        "use_pinned_memory": true,
+        "device": "cuda"
+      },
+      "config_hash": "bfcf2adccb1d",
+      "metrics": {
+        "transfer_time_ms_mean": 10.107840499767917,
+        "transfer_time_ms_min": 10.064109999802895,
+        "transfer_time_ms_max": 10.160387999349041,
+        "transfer_time_ms_p50": 10.116076999111101,
+        "bandwidth_gbps_mean": 24.15377972198721,
+        "bandwidth_gbps_max": 24.25854099416456
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:45.289163",
+      "end_time": "2026-04-25T19:51:45.658013",
+      "duration_seconds": 0.3688648480019765,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0027",
+      "config": {
+        "size_mb": 250,
+        "direction": "cpu_to_gpu",
+        "use_pinned_memory": false,
+        "device": "cuda"
+      },
+      "config_hash": "69fb79b9b8e1",
+      "metrics": {
+        "transfer_time_ms_mean": 26.84222280040558,
+        "transfer_time_ms_min": 23.547114000393776,
+        "transfer_time_ms_max": 33.01826000097208,
+        "transfer_time_ms_p50": 25.132942999334773,
+        "bandwidth_gbps_mean": 9.240169990746512,
+        "bandwidth_gbps_max": 10.36817611686584
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:45.658129",
+      "end_time": "2026-04-25T19:51:46.417504",
+      "duration_seconds": 0.7593848639990028,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0028",
+      "config": {
+        "size_mb": 250,
+        "direction": "cpu_to_gpu",
+        "use_pinned_memory": true,
+        "device": "cuda"
+      },
+      "config_hash": "aa31b273c322",
+      "metrics": {
+        "transfer_time_ms_mean": 10.17798219982069,
+        "transfer_time_ms_min": 10.109423998073908,
+        "transfer_time_ms_max": 10.325467999791726,
+        "transfer_time_ms_p50": 10.178322001593187,
+        "bandwidth_gbps_mean": 23.987945672316123,
+        "bandwidth_gbps_max": 24.14980567107629
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:46.417631",
+      "end_time": "2026-04-25T19:51:46.735271",
+      "duration_seconds": 0.3176531350000005,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0029",
+      "config": {
+        "size_mb": 500,
+        "direction": "gpu_to_cpu",
+        "use_pinned_memory": false,
+        "device": "cuda"
+      },
+      "config_hash": "841d2150fc01",
+      "metrics": {
+        "transfer_time_ms_mean": 61.612456499642576,
+        "transfer_time_ms_min": 50.94035799993435,
+        "transfer_time_ms_max": 69.87242499963031,
+        "transfer_time_ms_p50": 64.07577399659203,
+        "bandwidth_gbps_mean": 8.015564559388611,
+        "bandwidth_gbps_max": 9.585351755883405
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:46.735385",
+      "end_time": "2026-04-25T19:51:48.013755",
+      "duration_seconds": 1.2783826440027042,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0030",
+      "config": {
+        "size_mb": 500,
+        "direction": "gpu_to_cpu",
+        "use_pinned_memory": true,
+        "device": "cuda"
+      },
+      "config_hash": "dc153823ee81",
+      "metrics": {
+        "transfer_time_ms_mean": 20.121547501184978,
+        "transfer_time_ms_min": 20.049926002684515,
+        "transfer_time_ms_max": 20.32012700146879,
+        "transfer_time_ms_p50": 20.104739000089467,
+        "bandwidth_gbps_mean": 24.266883275331764,
+        "bandwidth_gbps_max": 24.353269430252425
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:48.013896",
+      "end_time": "2026-04-25T19:51:48.739871",
+      "duration_seconds": 0.7259863629988104,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0031",
+      "config": {
+        "size_mb": 500,
+        "direction": "cpu_to_gpu",
+        "use_pinned_memory": false,
+        "device": "cuda"
+      },
+      "config_hash": "736274317d3d",
+      "metrics": {
+        "transfer_time_ms_mean": 57.06901529993047,
+        "transfer_time_ms_min": 50.709835999441566,
+        "transfer_time_ms_max": 68.15461099904496,
+        "transfer_time_ms_p50": 56.48681900129304,
+        "bandwidth_gbps_mean": 8.626041259731462,
+        "bandwidth_gbps_max": 9.6289258361115
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:48.739976",
+      "end_time": "2026-04-25T19:51:50.302192",
+      "duration_seconds": 1.5622306500008563,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0032",
+      "config": {
+        "size_mb": 500,
+        "direction": "cpu_to_gpu",
+        "use_pinned_memory": true,
+        "device": "cuda"
+      },
+      "config_hash": "020cbcaa72e7",
+      "metrics": {
+        "transfer_time_ms_mean": 20.20254679955542,
+        "transfer_time_ms_min": 20.15048300017952,
+        "transfer_time_ms_max": 20.286603998101782,
+        "transfer_time_ms_p50": 20.20410299883224,
+        "bandwidth_gbps_mean": 24.169399797164363,
+        "bandwidth_gbps_max": 24.231739258838108
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:50.302306",
+      "end_time": "2026-04-25T19:51:50.941755",
+      "duration_seconds": 0.6394614529999672,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0033",
+      "config": {
+        "size_mb": 1000,
+        "direction": "gpu_to_cpu",
+        "use_pinned_memory": false,
+        "device": "cuda"
+      },
+      "config_hash": "215511779336",
+      "metrics": {
+        "transfer_time_ms_mean": 113.7576513003296,
+        "transfer_time_ms_min": 102.99685299833072,
+        "transfer_time_ms_max": 127.53295400034403,
+        "transfer_time_ms_p50": 114.02336800165358,
+        "bandwidth_gbps_mean": 8.61273707322428,
+        "bandwidth_gbps_max": 9.481479011944444
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:50.941853",
+      "end_time": "2026-04-25T19:51:53.268111",
+      "duration_seconds": 2.3262736280012177,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0034",
+      "config": {
+        "size_mb": 1000,
+        "direction": "gpu_to_cpu",
+        "use_pinned_memory": true,
+        "device": "cuda"
+      },
+      "config_hash": "6ed2ffbd186d",
+      "metrics": {
+        "transfer_time_ms_mean": 40.06141319987364,
+        "transfer_time_ms_min": 40.00064299907535,
+        "transfer_time_ms_max": 40.163317000406096,
+        "transfer_time_ms_p50": 40.055484998447355,
+        "bandwidth_gbps_mean": 24.376671786225774,
+        "bandwidth_gbps_max": 24.413670050818283
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:53.268226",
+      "end_time": "2026-04-25T19:51:54.717143",
+      "duration_seconds": 1.448926097000367,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0035",
+      "config": {
+        "size_mb": 1000,
+        "direction": "cpu_to_gpu",
+        "use_pinned_memory": false,
+        "device": "cuda"
+      },
+      "config_hash": "31970d7c72d3",
+      "metrics": {
+        "transfer_time_ms_mean": 106.0196790000191,
+        "transfer_time_ms_min": 101.0015320025559,
+        "transfer_time_ms_max": 116.2102770031197,
+        "transfer_time_ms_p50": 105.12181599915493,
+        "bandwidth_gbps_mean": 9.228517008709904,
+        "bandwidth_gbps_max": 9.668788984064989
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:54.717237",
+      "end_time": "2026-04-25T19:51:57.858888",
+      "duration_seconds": 3.141695949001587,
+      "status": "completed",
+      "error": null
+    },
+    {
+      "trial_id": "memory_transfer_benchmark_t0036",
+      "config": {
+        "size_mb": 1000,
+        "direction": "cpu_to_gpu",
+        "use_pinned_memory": true,
+        "device": "cuda"
+      },
+      "config_hash": "cabea9289f91",
+      "metrics": {
+        "transfer_time_ms_mean": 40.30359090102138,
+        "transfer_time_ms_min": 40.23507100282586,
+        "transfer_time_ms_max": 40.45007100285147,
+        "transfer_time_ms_p50": 40.29780800192384,
+        "bandwidth_gbps_mean": 24.230215330976762,
+        "bandwidth_gbps_max": 24.27142479583079
+      },
+      "metadata": {},
+      "start_time": "2026-04-25T19:51:57.859111",
+      "end_time": "2026-04-25T19:51:59.129696",
+      "duration_seconds": 1.2705941790009092,
+      "status": "completed",
+      "error": null
+    }
+  ]
+}
