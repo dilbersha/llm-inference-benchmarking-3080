@@ -39,8 +39,22 @@ The sweet spot on my 3080: H2O at 50% budget + INT4 quantization → 0.86 qualit
 | Reasoning Token Waste | 480 | How many CoT tokens matter | 80% removable for easy tasks |
 | Real Model Analysis | 976 | All of the above on actual Qwen2.5-0.5B | Where synthetic fails |
 | Optimization Stacking | 108 | 108 combos of KV+prune+quant | Perfect multiplicative composition |
+| Prompt Routing | 22 | Can entropy predict prompt difficulty? | **No — ranges overlap completely** |
+| Entropy → Quality | 20 | Does low entropy mean correct answer? | **No — confident and wrong is common** |
 
-Some more charts from the experiments:
+## What didn't work (also useful)
+
+### Prompt routing from entropy doesn't separate easy from hard
+![Routing scores](reports/charts/routing_score_by_difficulty.png)
+
+I tried building a prompt router using first-token entropy, attention patterns, and generation confidence. On a 0.5B model, the signals completely overlap — easy prompts and hard prompts look the same from the model's perspective. You'd probably need 7B+ for the model to "know what it doesn't know."
+
+### Entropy doesn't predict whether the answer is correct
+![Entropy quality](reports/charts/entropy_quality_predictor.png)
+
+Tested 14 factual prompts with verifiable answers. The model is often *more confident when it's wrong* than when it's right. If you're building a quality gate based on entropy, don't — at least not on small models. This is a real trap.
+
+## More charts
 
 ### Quantization sensitivity heatmap
 ![Quant sensitivity](reports/charts/quant_sensitivity_24L_1024H.png)
@@ -52,15 +66,34 @@ Red = layers that break when quantized. There's a clear periodic pattern — eve
 
 If you're offloading KV cache to CPU RAM, use pinned memory. A 500MB cache offloads in 20ms pinned vs 57ms paged.
 
+## Auto-optimizer
+
+The tool can also recommend the best optimization stack for your specific hardware and model:
+
+```bash
+python -m llm_bench optimize                        # auto-detect GPU, default 0.5B
+python -m llm_bench optimize --params 7 --priority speed   # 7B model, maximize speed
+python -m llm_bench optimize --vram 24 --params 13         # simulate a 4090 + 13B model
+```
+
+It considers VRAM pressure, model size, and all 2,331 experimental data points to recommend a specific combo of quantization, KV cache policy, head pruning, and confidence thresholds — with evidence citations from actual experiments.
+
 ## Setup
 
 ```bash
 git clone https://github.com/dilbersha/llm-inference-benchmark.git
 cd llm-inference-benchmark
 pip install -r requirements.txt
-python -m llm_bench run      # detects your GPU, downloads a model, runs experiments
-python -m llm_bench charts   # generates charts from the data
-python -m llm_bench info     # shows your hardware info
+python -m llm_bench run        # detects your GPU, downloads a model, runs experiments
+python -m llm_bench optimize   # get recommendations for your hardware
+python -m llm_bench charts     # generates charts from the data
+python -m llm_bench info       # shows your hardware info
+```
+
+Or install as a package:
+```bash
+pip install .
+llm-bench optimize
 ```
 
 The CLI figures out what GPU you have, picks a model that fits your VRAM, and downloads it from HuggingFace. On a 3080 it picks Phi-2 or Qwen2.5-0.5B.
