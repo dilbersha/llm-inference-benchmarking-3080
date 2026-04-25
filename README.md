@@ -1,7 +1,7 @@
 # LLM Inference Optimization Benchmark
 
 > **Which optimizations actually work on YOUR GPU?**
-> 7 experiments · 1,205 trials · 14 charts · RTX 3080 · 1-click setup
+> 9 experiments · 2,289 trials · 20 charts · Qwen2.5-0.5B on RTX 3080 · 1-click setup
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![NVIDIA CUDA](https://img.shields.io/badge/NVIDIA-CUDA-76B900.svg)](https://developer.nvidia.com/cuda-zone)
@@ -22,7 +22,7 @@ python -m llm_bench charts       # generates publication-quality visualizations
 
 The CLI auto-detects your hardware (CUDA/MPS/CPU), recommends the right model for your VRAM, and downloads it automatically.
 
-## 📊 Key Findings (1,205 Trials on RTX 3080)
+## 📊 Key Findings (2,289 Trials on RTX 3080)
 
 | # | Experiment | Trials | Key Finding |
 |---|---|---|---|
@@ -33,6 +33,26 @@ The CLI auto-detects your hardware (CUDA/MPS/CPU), recommends the right model fo
 | 5 | **Self-Speculative Decoding** | 62 | Exit at 50% depth → 2× speedup with 0.85 quality retention |
 | 6 | **PCIe Transfer** | 36 | Pinned memory gives 24.4 GB/s vs 9.5 GB/s paged (2.6× faster offloading) |
 | 7 | **Reasoning Token Waste** | 480 | Easy tasks: 80% of thinking tokens are removable; importance sampling beats truncation |
+| 8 | **Real Model Analysis** | 976 | H2O is 7-65× better than Window on real Qwen2.5-0.5B attention (not 2.8×) |
+| 9 | **Optimization Stacking** | 108 | Optimizations compose perfectly multiplicatively — no cancellation |
+
+## 🔥 Novel Findings (Real Qwen2.5-0.5B)
+
+### 1. H2O vs StreamingLLM: The Real Gap is 7-65×, Not 2.8×
+![Per-layer H2O Advantage](reports/charts/real_h2o_per_layer.png)
+> **Synthetic benchmarks massively understate H2O's advantage.** On real Qwen2.5-0.5B attention patterns, H2O retains 7-65× more quality than window-based eviction (StreamingLLM). Layers 11, 16, and 21 show extreme spikes of 23× advantage — these layers have the most non-local attention.
+
+### 2. Token Confidence is 100% Task-Dependent
+![Token Confidence by Task](reports/charts/real_token_confidence_by_task.png)
+> **Reasoning = 87% skip rate. Translation = 0%.** The same model generates tokens with wildly different confidence depending on task type. Adaptive sampling systems should be task-aware, not just threshold-based.
+
+### 3. Optimizations Compose — They Don't Cancel
+![Stacking Pareto](reports/charts/stacking_pareto.png)
+> **Combined quality = product of individual quality losses.** H2O 50% + INT4 gives 0.86 quality at 2.35× speed. This means you can reliably stack optimizations and predict the outcome. Window-based stacking is 4.8-6.2× worse than H2O stacking.
+
+### 4. At 90% Cache Eviction, Window Attention Is Dead
+![Extreme Compression](reports/charts/real_extreme_compression.png)
+> **H2O retains 62% quality vs Window's 2%.** At extreme compression (keeping only 10% of KV cache), H2O remains usable while window-based eviction is catastrophically bad. This matters for long-context inference on VRAM-limited GPUs.
 
 ### Quantization Sensitivity Heatmap
 ![Quantization Sensitivity Map](reports/charts/quant_sensitivity_24L_1024H.png)
@@ -42,15 +62,8 @@ The CLI auto-detects your hardware (CUDA/MPS/CPU), recommends the right model fo
 ![PCIe Transfer Bandwidth](reports/charts/transfer_bandwidth.png)
 > **Pinned memory is 2.6× faster for KV cache offloading.** At 1GB transfers, pinned achieves 24.4 GB/s vs 9.5 GB/s paged. This matters for CPU offloading strategies — a 500MB KV cache offloads in 20ms (pinned) vs 57ms (paged).
 
-### Self-Speculative Decoding
-![Speculative Decoding](reports/charts/speculative_speedup_vs_quality.png)
-> **The speedup-quality Pareto frontier.** Exiting at 50% model depth gives ~2× speedup with 0.85 cosine similarity. The sweet spot for 32-layer models is layers 16-20.
-
-### Reasoning Token Waste
-![Reasoning Token Waste](reports/charts/reasoning_waste_correctness.png)
-> **Easy tasks waste 80%+ of thinking tokens.** Importance-based sampling (keeping highest-norm states) outperforms naive truncation at all removal rates.
-
 ---
+
 
 ## 🔬 Experiment Details
 
