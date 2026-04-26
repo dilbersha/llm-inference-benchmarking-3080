@@ -8,3 +8,4 @@ benchmark_config.json
 *.egg-info/
 dist/
 build/
+resume_dilber_1page.tex

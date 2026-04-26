@@ -2,11 +2,11 @@
 
 I wanted to know which inference optimizations actually matter on a consumer GPU. Not what papers claim — what actually happens when you run them on a real model.
 
-So I loaded two models (Qwen2.5-0.5B and Phi-2 2.7B) on my RTX 3080, ran 3,627 experiments across 11 optimization techniques, and found some things that surprised me.
+So I loaded two models (Qwen2.5-0.5B and Phi-2 2.7B) on my RTX 3080, ran ~3,600 trials across 12 experiment tracks, and found some things that surprised me.
 
 ## What I found
 
-**The biggest surprise:** synthetic benchmarks massively understate how bad window-based KV cache eviction (StreamingLLM-style) is on real attention patterns. Papers report H2O being ~2-3× better than window eviction. On real attention, it's **7-65× better on 0.5B and 18-213× better on 2.7B**, depending on the layer.
+**The biggest surprise:** synthetic benchmarks massively understate how bad window-based KV cache eviction (StreamingLLM-style) is on real attention patterns. Papers report H2O being ~2-3× better than window eviction. On real attention, the median H2O/window ratio reaches **~36× on Qwen2.5-0.5B and ~200× on Phi-2** at a 10% KV budget.
 
 ![H2O vs Window per layer](reports/charts/real_h2o_per_layer.png)
 
@@ -75,7 +75,7 @@ If you're offloading KV cache to CPU RAM, use pinned memory. A 500MB cache offlo
 
 ## Auto-optimizer
 
-The tool can also recommend the best optimization stack for your specific hardware and model:
+The tool includes a first-pass recommender for optimization stacks:
 
 ```bash
 python -m llm_bench optimize                        # auto-detect GPU, default 0.5B
@@ -83,13 +83,13 @@ python -m llm_bench optimize --params 7 --priority speed   # 7B model, maximize 
 python -m llm_bench optimize --vram 24 --params 13         # simulate a 4090 + 13B model
 ```
 
-It considers VRAM pressure, model size, and all 2,331 experimental data points to recommend a specific combo of quantization, KV cache policy, head pruning, and confidence thresholds — with evidence citations from actual experiments.
+Right now this is a transparent lookup table seeded from the experiments, not a dynamic optimizer that re-reads every JSON file. Treat it as a sketch of the product direction: it considers VRAM pressure and model size, then cites the benchmark evidence behind each recommendation.
 
 ## Setup
 
 ```bash
-git clone https://github.com/dilbersha/llm-inference-benchmark.git
-cd llm-inference-benchmark
+git clone https://github.com/dilbersha/universal-llm-telemetry-suite.git
+cd universal-llm-telemetry-suite
 pip install -r requirements.txt
 python -m llm_bench run        # detects your GPU, downloads a model, runs experiments
 python -m llm_bench optimize   # get recommendations for your hardware
@@ -179,7 +179,7 @@ src/
   visualizer.py        # dashboard generation
   experiments/         # optimization experiments
     runner.py          # experiment framework (config hashing, JSON/CSV output)
-    exp_real_model.py  # real model experiments on Qwen2.5-0.5B
+    exp_real_model.py  # real model experiments on Qwen2.5-0.5B and Phi-2
     exp_stacking.py    # optimization stacking (108 combos)
     visualize.py       # chart generation
     visualize_real.py  # charts for real model findings

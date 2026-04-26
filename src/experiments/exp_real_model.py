@@ -25,15 +25,33 @@ from src.experiments.runner import ExperimentRunner
 
 # ── Model Loading ────────────────────────────────────────────────────
 
+def select_model_dtype(model_name: str, device: str):
+    """Pick a numerically stable dtype for each model family."""
+    if not device.startswith("cuda"):
+        return torch.float32
+
+    # Phi-2 overflows in fp16 under eager attention on RTX 3080:
+    # final-layer attentions and generation logits become NaN. bf16 keeps
+    # the same memory footprint while preserving finite probabilities.
+    if "phi-2" in model_name.lower():
+        if torch.cuda.is_bf16_supported():
+            return torch.bfloat16
+        print("  ! Phi-2 is unstable in fp16 and bf16 is unavailable; using fp32.")
+        return torch.float32
+
+    return torch.float16
+
+
 def load_model(model_name: str = "Qwen/Qwen2.5-0.5B", device: str = "cuda"):
     """Load model with attention output enabled."""
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
-    print(f"Loading {model_name}...")
+    dtype = select_model_dtype(model_name, device)
+    print(f"Loading {model_name} with dtype={dtype}...")
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        torch_dtype=torch.float16,
+        dtype=dtype,
         device_map=device,
         trust_remote_code=True,
         attn_implementation="eager",  # Need eager for attention weights
@@ -163,8 +181,14 @@ def analyze_real_confidence(gen_logits: list[torch.Tensor]) -> dict:
     top_probs = []
     entropies = []
     top_k_masses = []  # Mass in top-5
+    nonfinite_steps = 0
 
     for logits in gen_logits:
+        logits = logits.float()
+        if not torch.isfinite(logits).all():
+            nonfinite_steps += 1
+            continue
+
         probs = F.softmax(logits, dim=-1)
         top_prob = probs.max().item()
         top_probs.append(top_prob)
@@ -178,6 +202,13 @@ def analyze_real_confidence(gen_logits: list[torch.Tensor]) -> dict:
         top5 = probs.topk(5).values.sum().item()
         top_k_masses.append(top5)
 
+    if not top_probs:
+        return {
+            "num_tokens": len(gen_logits),
+            "valid_tokens": 0,
+            "nonfinite_token_steps": nonfinite_steps,
+        }
+
     return {
         "avg_top_prob": sum(top_probs) / len(top_probs),
         "min_top_prob": min(top_probs),
@@ -190,6 +221,8 @@ def analyze_real_confidence(gen_logits: list[torch.Tensor]) -> dict:
         "avg_entropy": sum(entropies) / len(entropies),
         "avg_top5_mass": sum(top_k_masses) / len(top_k_masses),
         "num_tokens": len(top_probs),
+        "valid_tokens": len(top_probs),
+        "nonfinite_token_steps": nonfinite_steps,
     }
 
 

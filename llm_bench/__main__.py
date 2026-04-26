@@ -374,11 +374,16 @@ def main():
         generate_all_charts()
         # Also generate real model charts
         try:
-            from src.experiments.visualize_real import generate_real_model_charts
+            from src.experiments.visualize_real import (
+                generate_cross_model_kv_chart,
+                generate_real_model_charts,
+            )
             import glob
             files = sorted(glob.glob("reports/experiments/real_model_analysis_*.json"))
             if files:
-                generate_real_model_charts(files[-1])
+                qwen_files = [f for f in files if "phi_2" not in Path(f).name]
+                generate_real_model_charts(qwen_files[-1] if qwen_files else files[-1])
+                generate_cross_model_kv_chart(files)
         except Exception:
             pass
 

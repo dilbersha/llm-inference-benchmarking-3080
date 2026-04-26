@@ -44,6 +44,214 @@ def _setup_chart(title, xlabel, ylabel, figsize=(10, 6)):
     return fig, ax
 
 
+def _is_finite_number(value):
+    return isinstance(value, (int, float)) and np.isfinite(value)
+
+
+def _model_label(path: Path, data: dict) -> tuple[str, str]:
+    text = " ".join([
+        path.name.lower(),
+        str(data.get("experiment", "")).lower(),
+        str(data.get("description", "")).lower(),
+    ])
+    if "phi_2" in text or "phi-2" in text:
+        return "phi", "Phi-2 2.7B"
+    if "qwen" in text:
+        return "qwen", "Qwen2.5-0.5B"
+    return path.stem, path.stem
+
+
+def _kv_summary(data: dict) -> dict:
+    kv_trials = [
+        t for t in data["trials"]
+        if t["config"].get("experiment") == "kv_cache_real"
+    ]
+    layers = sorted({t["config"]["layer"] for t in kv_trials})
+    budgets = sorted({t["config"]["budget_frac"] for t in kv_trials})
+    summary = {"layers": len(layers), "ratios": {}, "h2o": {}, "window": {}}
+
+    for budget in budgets:
+        subset = [t for t in kv_trials if t["config"].get("budget_frac") == budget]
+        ratios = [
+            t["metrics"].get("h2o_vs_window") for t in subset
+            if _is_finite_number(t["metrics"].get("h2o_vs_window"))
+        ]
+        h2o = [
+            t["metrics"].get("h2o_quality") for t in subset
+            if _is_finite_number(t["metrics"].get("h2o_quality"))
+        ]
+        window = [
+            t["metrics"].get("window_quality") for t in subset
+            if _is_finite_number(t["metrics"].get("window_quality"))
+        ]
+        if ratios:
+            summary["ratios"][budget] = float(np.median(ratios))
+        if h2o:
+            summary["h2o"][budget] = float(np.mean(h2o))
+        if window:
+            summary["window"][budget] = float(np.mean(window))
+
+    return summary
+
+
+def _style_axes(ax):
+    ax.tick_params(colors="#ddd", labelsize=10)
+    ax.grid(True, alpha=0.15, color="#555", axis="y")
+    for spine in ax.spines.values():
+        spine.set_color("#ddd")
+    ax.set_facecolor("#000000")
+
+
+def generate_cross_model_kv_chart(
+    data_paths: list[str] | None = None,
+    output_dir: str = "./reports/charts",
+):
+    """Generate the Qwen vs Phi-2 H2O/window comparison chart."""
+    if data_paths is None:
+        data_paths = sorted(str(p) for p in Path("reports/experiments").glob(
+            "real_model_analysis*.json"
+        ))
+
+    models = {}
+    for data_path in data_paths:
+        path = Path(data_path)
+        with open(path) as f:
+            data = json.load(f)
+        key, label = _model_label(path, data)
+        models[key] = {
+            "label": label,
+            "summary": _kv_summary(data),
+            "path": path,
+        }
+
+    if "qwen" not in models or "phi" not in models:
+        print("  ! cross_model_kv_comparison.png skipped: need Qwen and Phi-2 data")
+        return None
+
+    out = Path(output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+
+    budgets = [0.1, 0.2, 0.3, 0.5, 0.75]
+    qwen = models["qwen"]["summary"]
+    phi = models["phi"]["summary"]
+
+    fig, (ax_ratio, ax_quality) = plt.subplots(1, 2, figsize=(14, 5.4))
+    fig.patch.set_facecolor("#000000")
+    for ax in (ax_ratio, ax_quality):
+        _style_axes(ax)
+
+    x = np.arange(len(budgets))
+    width = 0.35
+    qwen_ratios = [qwen["ratios"].get(b, np.nan) for b in budgets]
+    phi_ratios = [phi["ratios"].get(b, np.nan) for b in budgets]
+
+    bars_qwen = ax_ratio.bar(
+        x - width / 2,
+        qwen_ratios,
+        width,
+        color="#5A9BE7",
+        edgecolor="white",
+        linewidth=0.4,
+        label=f"{models['qwen']['label']} ({qwen['layers']}L)",
+    )
+    bars_phi = ax_ratio.bar(
+        x + width / 2,
+        phi_ratios,
+        width,
+        color="#E86A0C",
+        edgecolor="white",
+        linewidth=0.4,
+        label=f"{models['phi']['label']} ({phi['layers']}L)",
+    )
+    ax_ratio.set_yscale("log")
+    ax_ratio.set_title(
+        "H2O Advantage Over Window Eviction\nGrows With Model Size",
+        color="white",
+        fontsize=16,
+    )
+    ax_ratio.set_xlabel("KV Cache Budget", color="white")
+    ax_ratio.set_ylabel("H2O / Window Ratio (median)", color="white")
+    ax_ratio.set_xticks(x)
+    ax_ratio.set_xticklabels([f"{b:.0%}" for b in budgets], color="white")
+    ax_ratio.legend(facecolor="#000000", edgecolor="#ddd", labelcolor="white")
+
+    for bars, color in ((bars_qwen, "#5A9BE7"), (bars_phi, "#E86A0C")):
+        for bar in bars:
+            height = bar.get_height()
+            if np.isfinite(height):
+                ax_ratio.text(
+                    bar.get_x() + bar.get_width() / 2,
+                    height * 1.12,
+                    f"{height:.0f}x",
+                    ha="center",
+                    va="bottom",
+                    color=color,
+                    fontsize=10,
+                )
+
+    labels = [
+        f"{models['qwen']['label']}\n({qwen['layers']} layers)",
+        f"{models['phi']['label'].replace(' 2.7B', '')}\n({phi['layers']} layers)",
+    ]
+    h2o_50 = [qwen["h2o"].get(0.5, np.nan) * 100, phi["h2o"].get(0.5, np.nan) * 100]
+    window_50 = [
+        qwen["window"].get(0.5, np.nan) * 100,
+        phi["window"].get(0.5, np.nan) * 100,
+    ]
+    qx = np.arange(len(labels))
+    bars_h2o = ax_quality.bar(
+        qx - width / 2,
+        h2o_50,
+        width,
+        color="#48C774",
+        edgecolor="white",
+        linewidth=0.4,
+        label="H2O",
+    )
+    bars_window = ax_quality.bar(
+        qx + width / 2,
+        window_50,
+        width,
+        color="#E06262",
+        edgecolor="white",
+        linewidth=0.4,
+        label="Window",
+    )
+    ax_quality.set_title(
+        "Quality at 50% KV Budget\nWindow Gets Worse on Bigger Models",
+        color="white",
+        fontsize=16,
+    )
+    ax_quality.set_ylabel("Quality Retained (%)", color="white")
+    ax_quality.set_xticks(qx)
+    ax_quality.set_xticklabels(labels, color="white")
+    ax_quality.set_ylim(0, max(110, np.nanmax(h2o_50) * 1.15))
+    ax_quality.legend(facecolor="#000000", edgecolor="#ddd", labelcolor="white")
+
+    for bars in (bars_h2o, bars_window):
+        for bar in bars:
+            height = bar.get_height()
+            if np.isfinite(height):
+                label = f"{height:.0f}%" if height >= 20 else f"{height:.1f}%"
+                ax_quality.text(
+                    bar.get_x() + bar.get_width() / 2,
+                    height + 2,
+                    label,
+                    ha="center",
+                    va="bottom",
+                    color="white",
+                    fontsize=10,
+                    fontweight="bold",
+                )
+
+    fig.tight_layout()
+    path = out / "cross_model_kv_comparison.png"
+    fig.savefig(path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print("  ✓ cross_model_kv_comparison.png")
+    return path
+
+
 def generate_real_model_charts(data_path: str, output_dir: str = "./reports/charts"):
     """Generate all charts from real model data."""
     with open(data_path) as f:
@@ -105,11 +313,11 @@ def generate_real_model_charts(data_path: str, output_dir: str = "./reports/char
 
     conf_trials = [t for t in data["trials"]
                    if t["config"]["experiment"] == "token_confidence_real"]
-    conf_trials.sort(key=lambda t: t["metrics"]["skip_rate_90"], reverse=True)
+    conf_trials.sort(key=lambda t: t["metrics"].get("skip_rate_90", 0), reverse=True)
 
     prompts = [t["config"]["prompt"] for t in conf_trials]
-    skip_90 = [t["metrics"]["skip_rate_90"] * 100 for t in conf_trials]
-    skip_95 = [t["metrics"]["skip_rate_95"] * 100 for t in conf_trials]
+    skip_90 = [t["metrics"].get("skip_rate_90", 0) * 100 for t in conf_trials]
+    skip_95 = [t["metrics"].get("skip_rate_95", 0) * 100 for t in conf_trials]
 
     x = np.arange(len(prompts))
     width = 0.35
@@ -198,6 +406,8 @@ if __name__ == "__main__":
     import glob
     files = sorted(glob.glob("reports/experiments/real_model_analysis_*.json"))
     if files:
-        generate_real_model_charts(files[-1])
+        qwen_files = [f for f in files if "phi_2" not in Path(f).name]
+        generate_real_model_charts(qwen_files[-1] if qwen_files else files[-1])
+        generate_cross_model_kv_chart(files)
     else:
         print("No real model data found. Run exp_real_model.py first.")

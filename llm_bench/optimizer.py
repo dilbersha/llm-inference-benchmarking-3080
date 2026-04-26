@@ -1,8 +1,9 @@
 """
-Auto-Optimizer: the commercially valuable piece.
+Auto-Optimizer: a first-pass recommender.
 
 Given your model + hardware, recommends the optimal inference optimization stack
-based on our 2,331 experimental trials.
+from a transparent lookup table seeded by the benchmark results. This is not
+yet a dynamic optimizer that re-reads every experiment JSON file.
 
 Usage:
     python -m llm_bench optimize
