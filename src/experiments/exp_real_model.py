@@ -246,18 +246,18 @@ def analyze_real_kv_cache(attentions: list[torch.Tensor], budgets: list[float]) 
 
 # ── Main Experiment ──────────────────────────────────────────────────
 
-def run_real_model_experiment():
+def run_real_model_experiment(model_name: str = "Qwen/Qwen2.5-0.5B"):
     """Run all experiments on a real model."""
+    short_name = model_name.split("/")[-1].lower().replace("-", "_")
     runner = ExperimentRunner(
-        name="real_model_analysis",
+        name=f"real_model_analysis_{short_name}",
         description=(
-            "Comprehensive analysis of Qwen2.5-0.5B with REAL attention "
-            "patterns, REAL logit distributions, and REAL KV cache behavior. "
-            "Hunting for findings that differ from synthetic experiments."
+            f"Comprehensive analysis of {model_name} with REAL attention "
+            "patterns, REAL logit distributions, and REAL KV cache behavior."
         ),
     )
 
-    model, tokenizer = load_model("Qwen/Qwen2.5-0.5B")
+    model, tokenizer = load_model(model_name)
 
     budgets = [0.1, 0.2, 0.3, 0.5, 0.75]
 
@@ -342,4 +342,6 @@ def run_real_model_experiment():
 
 
 if __name__ == "__main__":
-    run_real_model_experiment()
+    import sys
+    model = sys.argv[1] if len(sys.argv) > 1 else "Qwen/Qwen2.5-0.5B"
+    run_real_model_experiment(model)

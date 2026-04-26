@@ -2,15 +2,21 @@
 
 I wanted to know which inference optimizations actually matter on a consumer GPU. Not what papers claim — what actually happens when you run them on a real model.
 
-So I loaded Qwen2.5-0.5B on my RTX 3080, ran 2,289 experiments across 9 different optimization techniques, and found some things that surprised me.
+So I loaded two models (Qwen2.5-0.5B and Phi-2 2.7B) on my RTX 3080, ran 3,627 experiments across 11 optimization techniques, and found some things that surprised me.
 
 ## What I found
 
-**The biggest surprise:** synthetic benchmarks massively understate how bad window-based KV cache eviction (StreamingLLM-style) is on real attention patterns. Papers report H2O being ~2-3× better than window eviction. On real Qwen2.5-0.5B attention, it's **7-65× better**, depending on the layer.
+**The biggest surprise:** synthetic benchmarks massively understate how bad window-based KV cache eviction (StreamingLLM-style) is on real attention patterns. Papers report H2O being ~2-3× better than window eviction. On real attention, it's **7-65× better on 0.5B and 18-213× better on 2.7B**, depending on the layer.
 
 ![H2O vs Window per layer](reports/charts/real_h2o_per_layer.png)
 
 Layers 11, 16, and 21 spike hard — those are the layers with the most non-local attention patterns. Window eviction just throws away the tokens that matter most.
+
+### This holds across models — and gets worse on bigger ones
+
+![Cross model comparison](reports/charts/cross_model_kv_comparison.png)
+
+At 50% KV budget: H2O retains 87% quality on Qwen and 94% on Phi-2. Window retains 16% on Qwen and **7% on Phi-2**. The bigger the model, the worse window eviction gets — because larger models develop more non-local attention patterns that a fixed window can't capture.
 
 **Token confidence is completely task-dependent.** Same model, same threshold — reasoning tasks let you skip 87% of sampling operations, while translation tasks let you skip 0%. This isn't something you can fix with a global threshold.
 
@@ -37,7 +43,8 @@ The sweet spot on my 3080: H2O at 50% budget + INT4 quantization → 0.86 qualit
 | Self-Speculative Decoding | 62 | Early exit layer selection | 50% exit → 2× speedup |
 | PCIe Transfer | 36 | Pinned vs paged bandwidth | 24.4 vs 9.5 GB/s |
 | Reasoning Token Waste | 480 | How many CoT tokens matter | 80% removable for easy tasks |
-| Real Model Analysis | 976 | All of the above on actual Qwen2.5-0.5B | Where synthetic fails |
+| Real Model Analysis (0.5B) | 976 | All of the above on Qwen2.5-0.5B | Where synthetic fails |
+| Real Model Analysis (2.7B) | 1,296 | Same experiments on Phi-2 | H2O gap gets **worse** on bigger models |
 | Optimization Stacking | 108 | 108 combos of KV+prune+quant | Perfect multiplicative composition |
 | Prompt Routing | 22 | Can entropy predict prompt difficulty? | **No — ranges overlap completely** |
 | Entropy → Quality | 20 | Does low entropy mean correct answer? | **No — confident and wrong is common** |
